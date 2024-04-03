@@ -96,7 +96,7 @@ exports.updateCar = async (req, res, next) => {
             runValidators: true
         });
 
-        if (!hospital) {
+        if (!car) {
             return res.status(400).json({success: false});
         }
 
