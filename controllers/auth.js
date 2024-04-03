@@ -5,7 +5,7 @@ const User = require('../models/User')
 //@access Public
 const register = async (req, res, next) => {
     try {
-        const {name, email, password, role} = req.body;
+        const { name, email, password, role } = req.body;
         const user = await User.create({
             name,
             email,
@@ -25,7 +25,7 @@ const register = async (req, res, next) => {
 //@access Public
 const login = async (req, res, next) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
         if (!email || !password || typeof email != "string" || typeof password != "string") {
             return res.status(400).json({ success: false, msg: 'Please provide an email and password' });
         }
@@ -54,7 +54,7 @@ const login = async (req, res, next) => {
 //@desc Log user out / clear cookie
 //@route GET /api/v1/auth/logout
 //@access Private
-const logout = async(req, res, next) => {
+const logout = async (req, res, next) => {
     res.cookie('token', 'none', {
         expires: new Date(Date.now() + 10 * 1000),
         httpOnly: true
@@ -63,7 +63,7 @@ const logout = async(req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Logout successful",
-        data:{}
+        data: {}
     });
 }
 
