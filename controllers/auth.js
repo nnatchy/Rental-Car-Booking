@@ -5,10 +5,11 @@ const User = require('../models/User')
 //@access Public
 const register = async (req, res, next) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, tel, password, role} = req.body;
         const user = await User.create({
             name,
             email,
+            tel,
             password,
             role
         });
@@ -26,8 +27,12 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        if (!email || !password || typeof email != "string" || typeof password != "string") {
+        if (!email || !password) {
             return res.status(400).json({ success: false, msg: 'Please provide an email and password' });
+        }
+
+        if (typeof email != "string" || typeof password != "string") {
+            return res.status(400).json({ success: false, msg: 'Cannot convert email and password into string' });
         }
 
         // Check for user
@@ -90,11 +95,13 @@ const sendTokenResponse = (user, statusCode, res) => {
     if (process.env.NODE_ENV === 'production') {
         options.secure = true;
     }
-    res.status(statusCode).json({
+
+    res.status(statusCode).cookie('token',token,options).json({
         success: true,
         _id: user._id,
         name: user.name,
         email: user.email,
+        tel: user.tel,
         token
     })
 }
