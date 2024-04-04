@@ -56,7 +56,7 @@ app.use(cors());
 //Mount routers
 app.use('/api/v1/cars', cars);
 app.use('/api/v1/auth', auth);
-app.use('/api/v1/verified', verified)
+// app.use('/api/v1/verified', verified)
 
 const swaggerOptions = {
     swaggerDefinition: {

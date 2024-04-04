@@ -6,7 +6,7 @@ const Car = require("../models/Car");
 //@access Public
 exports.getCars = async (req, res, next) => {
     // let query;
-        
+
     // //copy req.query
     // const reqQuery = [...req.query];
 
@@ -43,9 +43,11 @@ exports.getCars = async (req, res, next) => {
     try {
         const cars = await Car.find(req.query);
         console.log(req.query);
-        res.status(200).json({ success: true, 
-            count: cars.length, 
-            data: cars });
+        res.status(200).json({
+            success: true,
+            count: cars.length,
+            data: cars
+        });
     } catch (err) {
         res.status(400).json({ success: false });
     }
@@ -62,8 +64,8 @@ exports.getCar = async (req, res, next) => {
             return res.status(400).json({ success: false });
         }
 
-        res.status(200).json({ 
-            success: true, 
+        res.status(200).json({
+            success: true,
             data: car,
         });
     } catch (err) {
@@ -77,12 +79,12 @@ exports.getCar = async (req, res, next) => {
 exports.createCar = async (req, res, next) => {
     try {
         const car = await Car.create(req.body);
-        res.status(201).json({ 
-            success: true, 
-            data: car 
+        res.status(201).json({
+            success: true,
+            data: car
         });
-    } catch(err) {
-        res.status(400).json({success: false});
+    } catch (err) {
+        res.status(400).json({ success: false });
     }
 }
 
@@ -91,21 +93,21 @@ exports.createCar = async (req, res, next) => {
 //@access Private
 exports.updateCar = async (req, res, next) => {
     try {
-        const car = await Car.findByIdAndUpdate(req.params.id,req.body, {
+        const car = await Car.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true
         });
 
         if (!car) {
-            return res.status(400).json({success: false});
+            return res.status(400).json({ success: false });
         }
 
         res.status(200).json({
-            success: true, 
+            success: true,
             data: car
         })
     } catch (err) {
-        res.status(400).json({ success: false});
+        res.status(400).json({ success: false });
     }
 }
 
@@ -116,10 +118,10 @@ exports.deleteCar = async (req, res, next) => {
     try {
         const car = await Car.findByIdAndDelete(req.params.id);
         res.status(200).json({
-            success: true, 
-            data: {}, 
+            success: true,
+            data: {},
         })
     } catch (err) {
-        res.status(400).json(({success: false}));
+        res.status(400).json(({ success: false }));
     }
 }

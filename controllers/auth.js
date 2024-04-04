@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const VerifiedController = require('../controllers/verified.js')
 
 //@desc Register user
 //@route POST /api/v1/auth/register
@@ -13,6 +14,12 @@ const register = async (req, res, next) => {
             password,
             role
         });
+
+        console.log("USER IN :", user)
+
+        await VerifiedController.createVerification(user);
+
+        // TODO: send email to user email ...
 
         sendTokenResponse(user, 200, res);
     } catch (err) {
@@ -67,7 +74,7 @@ const logout = async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: "Logout successful",
+        msg: "Logout successful",
         data: {}
     });
 }
@@ -106,9 +113,47 @@ const sendTokenResponse = (user, statusCode, res) => {
     })
 }
 
+//@desc Update verified in User Table
+//@route PUT /api/v1/auth/verified/:id
+//@access Public
+const updateVerification = async (req, res, next) => {
+    try {
+        const { user_id, otp } = req.body
+        const verificationData = await VerifiedController.getVerification(user_id)
+        if (!verificationData) {
+            return res.status(404).json({
+                success: false,
+                msg: `Verification from ${user_id} not found`,
+            });
+        }
+        let verifiedUser = {
+            "verified": true,
+        }
+        if (otp !== verificationData.otp) {
+            res.status(406).json({
+                success: false,
+                msg: "Incorrect OTP"
+            })
+        }
+        await User.findByIdAndUpdate(user_id, verifiedUser)
+        res.status(200).json({
+            success: true,
+            msg: "Verified successful",
+        })
+    } catch (err) {
+        console.error(err)
+        res.status(400).json({
+            success: false,
+            msg: "Update verified in User error",
+            error: err,
+        });
+    }
+}
+
 module.exports = {
     register,
     login,
     logout,
     getMe,
+    updateVerification,
 }
