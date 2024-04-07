@@ -23,7 +23,7 @@ const CarSchema = new mongoose.Schema({
     tel: {
         type: String,
         required: [true, 'Please add a telephone number'],
-        match: [/^\d{9,10}$/, 'Telephone number must be either 9 or 10 digits long']
+        match: [/^\+?1?(\d{10}|\d{3}-\d{3}-\d{4})$/, "Please add a valid telephone number"]
     },
     region: {
         type: String,
