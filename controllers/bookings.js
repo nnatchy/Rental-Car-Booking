@@ -7,17 +7,29 @@ const Car = require("../models/Car");
 exports.getBookings = async (req,res,next) => {
     let query;
     //General users can see only their bookings!
+    console.log(req.params.carId);
     if (req.user.role !== 'admin') {
-        query = Booking.find({user:req.user.id}).populate({
-            path:'car',
-            select: 'name address tel'
-        });
+        if (req.params.carId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User cannot view another user booking'
+            })
+        } else {
+            query = Booking.find({user:req.user.id}).populate({
+                path:'car',
+                select: 'name address tel'
+            });
+        }
     } else {
-        query = Booking.find().populate({
-            path: 'car',
-            select: 'name address tel'
-        });
-    }
+        if (req.params.carId) {
+            query = Booking.find({car:req.params.carId});
+        } else {
+            query = Booking.find().populate({
+                path: 'car',
+                select: 'name address tel'
+            });
+        }
+    } 
 
     try {
         const bookings = await query;
@@ -77,9 +89,33 @@ exports.addBooking = async (req,res,next) => {
         if (!car) {
             return res.status(404).json({
                 success: false,
-                message: `No car with the id of ${req.params.carId}`
+                message: `Dont have car with the id of ${req.params.carId}`
             })
-        } console.log(req.body);
+        }
+
+        const bookings = await Booking.find({
+            apptDate: req.body.apptDate,
+            car: req.body.car
+        });
+
+        if (bookings.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot booking same car with the same date`
+            })  
+        }
+
+        const apptDate = new Date(req.body.apptDate);
+        const today = new Date(Date.now());
+        today.setHours(0, 0, 0, 0);
+
+        // Check if the appointment date is today or a past date
+        if (apptDate < today) {
+            return res.status(402).json({
+                success: false,
+                message: `Appointment date cannot be today or in the past.`
+            });
+        }
 
         //add user Id to reqbody
         req.body.user = req.user.id;
@@ -122,10 +158,43 @@ exports.updateBooking = async(req,res,next) => {
         }
 
         if (booking.user.toString() != req.user.id && req.user.role != 'admin') {
-            return res.status(401).json({
+            return res.status(403).json({
                 success: false,
                 message: `Cannot update another user booking`
             })
+        }
+
+        const car = await Car.findById(req.body.car);
+
+        if (!car) {
+            return res.status(401).json({
+                success: false,
+                message: `No car with the id of ${req.params.carId}`
+            })
+        }
+
+        const bookings = await Booking.find({
+            apptDate: req.body.apptDate,
+            car: req.body.car
+        });
+
+        if (bookings.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot booking same car with the same date`
+            })  
+        }
+
+        const apptDate = new Date(req.body.apptDate);
+        const today = new Date(Date.now());
+        today.setHours(0, 0, 0, 0);
+
+        // Check if the appointment date is today or a past date
+        if (apptDate < today) {
+            return res.status(402).json({
+                success: false,
+                message: `Appointment date cannot be today or in the past.`
+            });
         }
         
         booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true});

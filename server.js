@@ -18,7 +18,7 @@ dotenv.config({ path: './config/config.env' });
 const cars = require('./routes/cars');
 const auth = require('./routes/auth')
 const bookings = require('./routes/bookings');
-const verified = require('./routes/verified')
+const verified = require('./routes/verified');
 
 //Connect to database
 connectDB();
@@ -58,7 +58,7 @@ app.use(cors());
 app.use('/api/v1/cars', cars);
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/bookings', bookings);
-// app.use('/api/v1/verified', verified)
+app.use('/api/v1/verified', verified);
 
 const swaggerOptions = {
     swaggerDefinition: {
