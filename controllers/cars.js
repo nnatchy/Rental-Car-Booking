@@ -5,43 +5,71 @@ const Car = require("../models/Car");
 //@route GET /api/v1/cars
 //@access Public
 exports.getCars = async (req, res, next) => {
-    // let query;
+    let query;
 
-    // //copy req.query
-    // const reqQuery = [...req.query];
+    //Copy req.query
+    const reqQuery = {...req.query};
 
-    // //Fields to exclude
-    // const removeFields = ['select','sort','page','limit'];
+    //Fields to exclude
+    const removeFields = ['select','sort','page','limit'];
 
-    // //Loop over remove fields and delete them from reqQuery
-    // removeFields.forEach(params => delete reqQuery[param]);
-    // console.log(reqQuery);
+    //Loop over remove fields and delete them for reqQuery
+    removeFields.forEach(param => delete reqQuery[param]);
+    console.log(reqQuery);
 
-    // let queryStr = JSON.stringify(req.query);
-    // queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+    //Create query string
+    let queryStr = JSON.stringify(req.query);
 
-    // //Select Fields
-    // if (req.query.select) {
-    //     const fields = req.query.select.split(',').join(' ');
-    //     query = query.select(fields);
-    // }
+    //Create operations ($gt, $gte, etc)
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
-    // //Sort Fields
-    // if (req.query.sort) {
-    //     const sortBy = req.query.sort.split(',').join(' ');
-    //     query = query.sort(sortBy);
-    // } else {
-    //     query = query.sort('name');
-    // }
+    //finding resource
+    query = Car.find(JSON.parse(queryStr)).populate('bookings');
 
-    // //Pagination
-    // const page = parseInt(req.query.page,10) || 1;
-    // const limit = parseInt(req.query.limit,10) || 25
-    // const startIndex = (page-1)*limit;
-    // const endIndex = page*limit;
+    //Select Fields
+    if (req.query.select) {
+        const fields = req.query.select.split(',').join(' ');
+        query = query.select(fields);
+    }
+
+    //Sort
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ');
+        query = query.sort(sortBy);
+    } else {
+        query = query.sort('name');
+    }
+
+    //Pagination
+    const page = parseInt(req.query.page,10) || 1;
+    const limit = parseInt(req.query.limit,10) || 10;
+    const startIndex = (page-1)*limit;
+    const endIndex = page*limit;
+
 
     try {
-        const cars = await Car.find(req.query);
+        const total = await Car.countDocuments();
+        query = query.skip(startIndex).limit(limit);
+
+        //Execute query
+        const cars = await query;
+
+        //Pagination result
+        const pagination = {};
+
+        if (endIndex < total) {
+            pagination.next = {
+                page: page+1,
+                limit
+            }
+        }
+
+        if (startIndex > 0) {
+            pagination.prev = {
+                page: page-1,
+                limit
+            }
+        }
         console.log(req.query);
         res.status(200).json({
             success: true,
@@ -77,6 +105,7 @@ exports.getCar = async (req, res, next) => {
 //@route POST /api/v1/cars
 //@access Private
 exports.createCar = async (req, res, next) => {
+    console.log(req.body);
     try {
         const car = await Car.create(req.body);
         res.status(201).json({
@@ -116,7 +145,12 @@ exports.updateCar = async (req, res, next) => {
 //@access Private
 exports.deleteCar = async (req, res, next) => {
     try {
-        const car = await Car.findByIdAndDelete(req.params.id);
+        const car = await Car.findById(req.params.id);
+        if (!car) {
+            res.status(400).json({success: false});
+        } 
+        
+        await car.deleteOne();
         res.status(200).json({
             success: true,
             data: {},

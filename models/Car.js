@@ -29,6 +29,24 @@ const CarSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a region']
     }
+}, {
+    toJSON: {virtuals:true},
+    toObject: {virtuals:true}
+});
+
+//Reverse populate with virtuals
+CarSchema.virtual('bookings',{
+    ref: 'Booking',
+    localField: '_id',
+    foreignField: 'car',
+    justOne: false
+});
+
+//Cascade delete booking when a car is deleted
+CarSchema.pre('deleteOne',{document: true, query: false},async function(next){
+    console.log(`Bookings being removed from car ${this._id}`);
+    await this.model('Booking').deleteMany({car:this._id});
+    next();
 })
 
 module.exports = mongoose.model('Car', CarSchema);
