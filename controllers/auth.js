@@ -1,5 +1,6 @@
 const User = require('../models/User')
-const VerifiedController = require('../controllers/verified.js')
+const VerifiedController = require('../controllers/verified.js');
+const Verified = require('../models/Verified.js');
 
 //@desc Register user
 //@route POST /api/v1/auth/register
@@ -54,6 +55,10 @@ const login = async (req, res, next) => {
 
         if (!isMatch) {
             return res.status(401).json({ success: false, msg: "Invalid credentials" });
+        }
+
+        if (!user.verified) {
+            return res.status(400).json({ success: false, msg: 'Please verify your email first. Check your email inbox'})
         }
 
         sendTokenResponse(user, 200, res);
@@ -123,7 +128,7 @@ const updateVerification = async (req, res, next) => {
         if (!verificationData) {
             return res.status(404).json({
                 success: false,
-                msg: `Verification from ${user_id} not found`,
+                msg: `Verification from ${user_id} not found, might be because of token expired or user hasn't registered yet`,
             });
         }
         let verifiedUser = {
@@ -136,6 +141,9 @@ const updateVerification = async (req, res, next) => {
             })
         }
         await User.findByIdAndUpdate(user_id, verifiedUser)
+
+        await VerifiedController.deleteVerification(user_id)
+
         res.status(200).json({
             success: true,
             msg: "Verified successful",
@@ -145,6 +153,36 @@ const updateVerification = async (req, res, next) => {
         res.status(400).json({
             success: false,
             msg: "Update verified in User error",
+            error: err,
+        });
+    }
+}
+
+//@desc Forgot password
+//@route PUT /api/v1/auth/forgotpassword/:id
+//@access Private
+const forgotPassword = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id)
+        const isMatch = await user.matchPassword(password);
+
+        if (isMatch) {
+            return res.status(401).json({ success: false, msg: "Old password" });
+        }
+
+        const userNew = await User.updateOne().save()
+
+        res.status(200).json({
+            success: true,
+            msg: "Verified successful",
+            data: userNew,
+        })
+
+    } catch (err) {
+        console.error(err)
+        res.status(400).json({
+            success: false,
+            msg: "change password error",
             error: err,
         });
     }

@@ -31,10 +31,10 @@ const EmailSenderService = {
     };
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        console.error("[Config: EmailSenderService]: Send email error:", err)
-      } else {
-        console.log(info.messageId)
+        console.error("[Config: EmailSenderService]: Send email error:", error)
+        return;
       }
+      console.log("[Config: EmailSenderService]: Send email successful", info.envelope.to)
     });
   }
 };
