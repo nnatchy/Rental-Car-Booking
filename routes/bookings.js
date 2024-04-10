@@ -260,6 +260,196 @@ const {protect} = require('../middleware/auth');
  *                   example: "Cannot create booking due to a server error."
  */
 
+/**
+* @swagger
+* components:
+*   securitySchemes:
+*     bearerAuth:   
+*       type: http
+*       scheme: bearer
+*       bearerFormat: JWT
+*
+* /bookings/{id}:
+*   put:
+*     summary: Update the booking by id
+*     tags: [Bookings]
+*     security:
+*       - bearerAuth: [] 
+*     parameters:
+*       - in: path
+*         name: id
+*         schema:
+*           type: string
+*         required: true
+*         description: The booking id
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             $ref: '#/components/schemas/Booking'
+*     responses:
+*       200:
+*         description: The booking was successfully update
+*         content:
+*           application/json:
+*             schema:
+*               $ref: '#/components/schemas/Booking'
+*       400:
+*         description: Cannot booking same car with the same date
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "Cannot booking same car with the same date"
+*       401:
+*         description: No car found with this id
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "No car with the id of 660d7d82f79a361be5915e50"
+*       402:
+*         description: Booking date cannot be past
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "Booking date cannot be today or in the past."
+*       403:
+*         description: User cannot update another user booking
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "Cannot update another user booking"
+*       404:
+*         description: No booking found by id
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "No booking with id 6613c0f540350dcef6af9a98"
+*       500:
+*         description: Some server error
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*/
+
+/**
+* @swagger
+* components:
+*   securitySchemes:
+*     bearerAuth:   
+*       type: http
+*       scheme: bearer
+*       bearerFormat: JWT
+*
+* /booking/{id}:
+*   delete:
+*     summary: Remove the booking by id
+*     tags: [Bookings]
+*     security:
+*       - bearerAuth: []  
+*     parameters:
+*       - in: path
+*         name: id
+*         schema:
+*           type: string
+*         required: true
+*         description: The booking id
+*     responses:
+*       200:
+*         description: The car was deleted
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "true"
+*                 data:
+*                   type: object
+*                   description: Invalid credentials
+*                   example: {}
+*       401:
+*         description: Use cannot delete another user booking
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "Cannot delete another user booking"
+*       404:
+*         description: No booking found by id
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "No booking with the id 6613c0f540350dcef6af9a98"
+*       500:
+*         description: Cannot delete booking
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: string
+*                   example: "false"
+*                 message:
+*                   type: string
+*                   example: "Cannot delete booking"
+*/
+
 
 router.route('/').get(protect,getBookings).post(protect,addBooking);
 router.route('/:id').get(protect,getBooking).put(protect,updateBooking).delete(protect,deleteBooking);

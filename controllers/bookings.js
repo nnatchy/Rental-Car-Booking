@@ -193,7 +193,7 @@ exports.updateBooking = async(req,res,next) => {
         if (apptDate < today) {
             return res.status(402).json({
                 success: false,
-                message: `Appointment date cannot be today or in the past.`
+                message: `Booking date cannot be today or in the past.`
             });
         }
         
