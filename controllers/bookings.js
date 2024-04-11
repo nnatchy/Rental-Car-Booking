@@ -207,7 +207,7 @@ exports.updateBooking = async (req, res, next) => {
             data: booking 
         });
 
-        sendEmailBookingSuccess(booking,"update");
+        await sendEmailBookingSuccess(booking,"update");
     } catch (err) {
         console.log(err.stack);
         res.status(500).json({
@@ -401,7 +401,7 @@ const sendEmailBookingSuccess = async (booking_information, subject_content) => 
                 <div class="email-container">
                     <h3>${content}</h3>
                     <p>Dear ${user.name},</p>
-                    <p>We are pleased t o confirm your booking with CV-Natchy Rental Car. Your reservation details are as follows:</p>
+                    <p>We are pleased to confirm your booking with CV-Natchy Rental Car. Your reservation details are as follows:</p>
                     <ul>
                         <li>Booking Id: ${booking_information._id}</li>
                         <li>Car Name: ${car.name}</li>
