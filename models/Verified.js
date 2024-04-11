@@ -17,8 +17,7 @@ const VerifiedSchema = new mongoose.Schema({
     },
     expiresAt: {
         type: Date,
-        default: Date.now,
-        expires: 60 * 60 * 24 * 7,
+        default: Date.now() + 60 * 60 * 24 * 7,
     },
 });
 

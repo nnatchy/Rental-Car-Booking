@@ -1,13 +1,14 @@
 const User = require('../models/User')
 const VerifiedController = require('../controllers/verified.js');
-const Verified = require('../models/Verified.js');
+const EmailService = require('../config/email.js')
+const crypto = require('crypto')
 
 //@desc Register user
 //@route POST /api/v1/auth/register
 //@access Public
 const register = async (req, res, next) => {
     try {
-        const { name, email, tel, password, role} = req.body;
+        const { name, email, tel, password, role } = req.body;
         const user = await User.create({
             name,
             email,
@@ -58,7 +59,7 @@ const login = async (req, res, next) => {
         }
 
         if (!user.verified) {
-            return res.status(400).json({ success: false, msg: 'Please verify your email first. Check your email inbox'})
+            return res.status(400).json({ success: false, msg: 'Please verify your email first. Check your email inbox' })
         }
 
         sendTokenResponse(user, 200, res);
@@ -108,7 +109,7 @@ const sendTokenResponse = (user, statusCode, res) => {
         options.secure = true;
     }
 
-    res.status(statusCode).cookie('token',token,options).json({
+    res.status(statusCode).cookie('token', token, options).json({
         success: true,
         _id: user._id,
         name: user.name,
@@ -121,9 +122,11 @@ const sendTokenResponse = (user, statusCode, res) => {
 //@desc Update verified in User Table
 //@route PUT /api/v1/auth/verified/:id
 //@access Public
-const updateVerification = async (req, res, next) => {
+const verifyUser = async (req, res, next) => {
     try {
-        const { user_id, otp } = req.body
+        const user_id = req.params.id;
+        const { otp } = req.body
+        console.log("verifyUser:", user_id)
         const verificationData = await VerifiedController.getVerification(user_id)
         if (!verificationData) {
             return res.status(404).json({
@@ -158,40 +161,134 @@ const updateVerification = async (req, res, next) => {
     }
 }
 
-//@desc Forgot password
-//@route PUT /api/v1/auth/forgotpassword/:id
-//@access Private
+//@desc Forgot password - Send reset password instructions via email
+//@route POST /api/v1/auth/forgotpassword
+//@access Public
 const forgotPassword = async (req, res, next) => {
     try {
-        const user = await User.findById(req.params.id)
-        const isMatch = await user.matchPassword(password);
+        const { email } = req.body;
 
-        if (isMatch) {
-            return res.status(401).json({ success: false, msg: "Old password" });
+        // Generate reset token
+        const resetToken = crypto.randomBytes(20).toString('hex');
+
+        // Find user by email and update reset token and expiry time
+        const user = await User.findOneAndUpdate(
+            { email: email },
+            { resetPasswordToken: resetToken, resetPasswordExpire: Date.now() + 3600000 }, // Reset token expires in 1 hour
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                msg: "User not found",
+            });
         }
 
-        const userNew = await User.updateOne().save()
+        const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${user._id}/${resetToken}`;
+        const emailContent = `
+            <html>
+            <head>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        margin: 40px auto;
+                        max-width: 600px;
+                        color: #333333;
+                    }
+                    h3 {
+                        font-size: 24px;
+                        margin-bottom: 20px;
+                        color: #333333;
+                    }
+                    p {
+                        margin-bottom: 20px;
+                        color: #666666;
+                    }
+                    .signature {
+                        margin-top: 20px;
+                        font-style: italic;
+                    }
+                </style>
+            </head>
+            <body>
+                <h3>Dear ${user.name},</h3>
+                <p>We received a request to reset your password. If this wasn't you, you can ignore this email.</p>
+                <p>To reset your password, click the link below:</p>
+                <p><a href="${resetUrl}">Reset password link</a></p>
+                <p>The link will expire in 1 hour.</p>
+                <p class="signature">Best regards,<br>CV-Natchy Rental Car Booking team</p>
+            </body>
+            </html>
+        `;
 
+        // Send the email
+        await EmailService.sendEmail(email, "Reset Your Password", '', emailContent);
+
+        // Respond to the client
         res.status(200).json({
             success: true,
-            msg: "Verified successful",
-            data: userNew,
-        })
+            msg: "Password reset instructions sent to your email",
+        });
 
     } catch (err) {
         console.error(err)
-        res.status(400).json({
+        res.status(500).json({
             success: false,
-            msg: "change password error",
+            msg: "Forgot password method error",
             error: err,
         });
     }
-}
+};
+
+// @desc Reset password - Update user's password using reset token
+// @route PUT /api/v1/auth/resetpassword/:id/:token
+// @access Public
+const resetPassword = async (req, res, next) => {
+    try {
+        const { id, token } = req.params;
+        const { password } = req.body;
+
+        // Find user by ID and reset token
+        const user = await User.findOne({
+            _id: id,
+            resetPasswordToken: token,
+            resetPasswordExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            res.status(400).json({ success: false, msg: "Invalid or expired reset token" });
+        }
+
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            msg: "Password reset successful",
+            data: user
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            msg: "Error resetting password",
+            error: err,
+        });
+    }
+};
 
 module.exports = {
     register,
     login,
     logout,
     getMe,
-    updateVerification,
+    verifyUser,
+    forgotPassword,
+    resetPassword,
 }

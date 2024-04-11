@@ -30,12 +30,12 @@ const CarSchema = new mongoose.Schema({
         required: [true, 'Please add a region']
     }
 }, {
-    toJSON: {virtuals:true},
-    toObject: {virtuals:true}
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
 //Reverse populate with virtuals
-CarSchema.virtual('bookings',{
+CarSchema.virtual('bookings', {
     ref: 'Booking',
     localField: '_id',
     foreignField: 'car',
@@ -43,9 +43,9 @@ CarSchema.virtual('bookings',{
 });
 
 //Cascade delete booking when a car is deleted
-CarSchema.pre('deleteOne',{document: true, query: false},async function(next){
+CarSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
     console.log(`Bookings being removed from car ${this._id}`);
-    await this.model('Booking').deleteMany({car:this._id});
+    await this.model('Booking').deleteMany({ car: this._id });
     next();
 })
 

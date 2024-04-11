@@ -1,11 +1,10 @@
+const User = require("../models/User")
 const Verified = require('../models/Verified')
 const EmailService = require('../config/email')
 
-//@desc Get user verification
-//@route Get /api/v1/verified/:id
-//@access Public
 const getVerification = async (userId) => {
     try {
+        console.log("[getVerification]: userID", userId)
         const verification = await Verified.findOne({ user_id: userId });
         if (!verification) {
             console.error("No verification found for userId:", userId);
@@ -48,32 +47,43 @@ const createVerification = (user) => {
 //@desc Update OTP Verification
 //@route PUT /api/v1/verified/:userId
 //@access Public
-const updateVerification = async (user) => {
+const updateVerification = async (req, res, next) => {
     try {
+        const { userId } = req.params;
         const otp = generateOTP();
-        if (!user._id) {
-            console.error("Invalid UserId", user._id);
-            return;
-        }
-        const verified = await Verified.findOneAndUpdate({ user_id: user._id }, { otp: otp });
-    
-        await SendEmailVerification(user.email, otp)
 
-        console.log("Success:", verified)
+        // Find user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            console.error("Invalid UserId");
+            return res.status(404).json({ success: false, msg: "User not found" });
+        }
+
+        // Update OTP in the verified table
+        const verified = await Verified.findOneAndUpdate(
+            { user_id: user._id },
+            { otp: otp, expiresAt: Date.now() + 24 * 60 * 60 * 1000 }, // Set expiration for 1 day
+            { new: true, upsert: true } // Create if not exists
+        );
+
+        // Send email verification
+        await SendEmailVerification(user.email, otp);
+
+        console.log("Success:", verified);
         res.status(200).json({
             success: true,
+            msg: "Resend OTP successful",
             data: verified
-        })
+        });
     } catch (err) {
-        console.error(err)
+        console.error(err);
         res.status(400).json({
             success: false,
-            msg: "Update otp in verified table error",
+            msg: "Update OTP in verified table error",
             error: err,
         });
     }
-
-}
+};
 
 const SendEmailVerification = async (email, otp) => {
     try {
@@ -115,10 +125,9 @@ const SendEmailVerification = async (email, otp) => {
         </body>
         </html>
         `;
-        await EmailService.sendEmail(email, subject, '', emailContent);
+        await EmailService.sendEmail(email, "Email Verification OTP", '', emailContent);
     } catch (err) {
         console.error(err);
-
     }
 }
 

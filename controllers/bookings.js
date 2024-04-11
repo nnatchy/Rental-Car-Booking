@@ -4,7 +4,7 @@ const Car = require("../models/Car");
 //@desc Get all bookings
 //@route GET /api/v1/booking
 //@access Private
-exports.getBookings = async (req,res,next) => {
+exports.getBookings = async (req, res, next) => {
     let query;
     //General users can see only their bookings!
     console.log(req.params.carId);
@@ -15,25 +15,25 @@ exports.getBookings = async (req,res,next) => {
                 message: 'User cannot view another user booking'
             })
         } else {
-            query = Booking.find({user:req.user.id}).populate({
-                path:'car',
+            query = Booking.find({ user: req.user.id }).populate({
+                path: 'car',
                 select: 'name address tel'
             });
         }
     } else {
         if (req.params.carId) {
-            query = Booking.find({car:req.params.carId});
+            query = Booking.find({ car: req.params.carId });
         } else {
             query = Booking.find().populate({
                 path: 'car',
                 select: 'name address tel'
             });
         }
-    } 
+    }
 
     try {
         const bookings = await query;
-        
+
         res.status(200).json({
             success: true,
             count: bookings.length,
@@ -51,7 +51,7 @@ exports.getBookings = async (req,res,next) => {
 //@desc Get sindle booking
 //@route GET /api/v1/booking/:id
 //@access Public
-exports.getBooking = async (req,res,next) => {
+exports.getBooking = async (req, res, next) => {
     try {
         console.log(req.params.id)
         const booking = await Booking.findById(req.params.id).populate({
@@ -61,13 +61,13 @@ exports.getBooking = async (req,res,next) => {
 
         if (!booking) {
             return res.status(404).json({
-                success:false,
+                success: false,
                 message: `No booking with the id of ${req.params.id}`
             })
-        } 
+        }
 
         res.status(200).json({
-            succes:true,
+            succes: true,
             data: booking
         })
     } catch (err) {
@@ -82,7 +82,7 @@ exports.getBooking = async (req,res,next) => {
 //desc @Add single booking
 //@route POST /api/v1/car/:carId/bookings/
 //@access Private
-exports.addBooking = async (req,res,next) => {
+exports.addBooking = async (req, res, next) => {
     try {
         const car = await Car.findById(req.body.car);
 
@@ -102,7 +102,7 @@ exports.addBooking = async (req,res,next) => {
             return res.status(400).json({
                 success: false,
                 message: `Cannot booking same car with the same date`
-            })  
+            })
         }
 
         const apptDate = new Date(req.body.apptDate);
@@ -120,18 +120,18 @@ exports.addBooking = async (req,res,next) => {
         //add user Id to reqbody
         req.body.user = req.user.id;
         //Check for existed booking
-        const existedBooking = await Booking.find({user:req.user.id});
+        const existedBooking = await Booking.find({ user: req.user.id });
 
         if (existedBooking.length >= 3 && req.user.role == 'user') {
             return res.status(401).json({
-                success: false, 
+                success: false,
                 message: `The user with ID ${req.user.id} has already made 3 bookings`
             })
         }
 
         const booking = await Booking.create(req.body);
         res.status(200).json({
-            success:true,
+            success: true,
             data: booking
         });
     } catch (err) {
@@ -146,7 +146,7 @@ exports.addBooking = async (req,res,next) => {
 //@desc Update booking
 //@route PUT /api/v1/bookings/:id
 //@access Private
-exports.updateBooking = async(req,res,next) => {
+exports.updateBooking = async (req, res, next) => {
     try {
         let booking = await Booking.findById(req.params.id);
 
@@ -182,7 +182,7 @@ exports.updateBooking = async(req,res,next) => {
             return res.status(400).json({
                 success: false,
                 message: `Cannot booking same car with the same date`
-            })  
+            })
         }
 
         const apptDate = new Date(req.body.apptDate);
@@ -196,13 +196,13 @@ exports.updateBooking = async(req,res,next) => {
                 message: `Booking date cannot be today or in the past.`
             });
         }
-        
-        booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true});
-        res.status(200).json({success: true, data: booking});
-    } catch(err) {
+
+        booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        res.status(200).json({ success: true, data: booking });
+    } catch (err) {
         console.log(err.stack);
         res.status(500).json({
-            success:false,
+            success: false,
             message: "Cannot update booking"
         });
     }
@@ -211,12 +211,12 @@ exports.updateBooking = async(req,res,next) => {
 //@desc Delete booking
 //@route DELETE /api/v1/booking/:id
 //@access Private
-exports.deleteBooking = async (req,res,next) => {
+exports.deleteBooking = async (req, res, next) => {
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) {
             return res.status(404).json({
-                success:false,
+                success: false,
                 message: `No booking with the id ${req.params.id}`
             })
         }
@@ -233,7 +233,7 @@ exports.deleteBooking = async (req,res,next) => {
             success: true,
             data: {}
         });
-    } catch(err) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({
             success: false,

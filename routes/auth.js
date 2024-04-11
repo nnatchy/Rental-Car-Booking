@@ -1,6 +1,6 @@
 const express = require('express')
 
-const { register, login, getMe, logout, updateVerification } = require('../controllers/auth')
+const { register, login, getMe, logout, verifyUser, forgotPassword, resetPassword } = require('../controllers/auth')
 const { protect } = require('../middleware/auth');
 
 /**
@@ -194,6 +194,8 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 router.get('/logout', logout)
-router.put('/verified/:id', updateVerification)
+router.put('/verified/:id', verifyUser)
+router.post('/forgotpassword', forgotPassword);
+router.put('/resetpassword/:id/:token', resetPassword);
 
 module.exports = router;
