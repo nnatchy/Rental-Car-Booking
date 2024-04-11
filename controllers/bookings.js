@@ -1,5 +1,8 @@
 const Booking = require('../models/Booking');
 const Car = require("../models/Car");
+const EmailService = require('../config/email');
+const User = require("../models/User");
+const { getMe } = require('./auth');
 
 //@desc Get all bookings
 //@route GET /api/v1/booking
@@ -134,6 +137,7 @@ exports.addBooking = async (req, res, next) => {
             success: true,
             data: booking
         });
+        await sendEmailBookingSuccess(booking,"create");
     } catch (err) {
         console.log(err.stack);
         return res.status(500).json({
@@ -198,7 +202,12 @@ exports.updateBooking = async (req, res, next) => {
         }
 
         booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        res.status(200).json({ success: true, data: booking });
+        res.status(200).json({ 
+            success: true, 
+            data: booking 
+        });
+
+        sendEmailBookingSuccess(booking,"update");
     } catch (err) {
         console.log(err.stack);
         res.status(500).json({
@@ -228,16 +237,189 @@ exports.deleteBooking = async (req, res, next) => {
             })
         }
 
+        const apptDate = new Date(booking.apptDate);
+        const today = new Date(Date.now());
+        today.setHours(0, 0, 0, 0);
+
+        // Check if the appointment date is today or a past date
+        if (apptDate == today) {
+            return res.status(402).json({
+                success: false,
+                message: "cannot cancel booking that be today"
+            });
+        }
+
         await booking.deleteOne();
         res.status(200).json({
             success: true,
             data: {}
         });
+
+        sendEmailCancelBookingSuccess(booking);
     } catch (err) {
         console.log(err);
         res.status(500).json({
             success: false,
             message: 'Cannot delete booking'
         })
+    }
+}
+
+const sendEmailCancelBookingSuccess = async(booking_information) => {
+    try {
+        const user = await User.findById(booking_information.user);
+        const car = await Car.findById(booking_information.car);
+        const content = "Cancel Booking Confirmation"
+        const emailContent = `
+
+        <html>
+            <head>
+                <style>
+                    body {
+                        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                        background-color: #f4f4f4;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        margin: 0;
+                        padding: 20px;
+                        color: #555;
+                    }
+                    .email-container {
+                        background-color: #ffffff;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
+                        border-top: 4px solid #5cb85c;
+                    }
+                    h3 {
+                        font-size: 24px;
+                        margin-bottom: 20px;
+                        color: #333;
+                        text-align: center;
+                    }
+                    p {
+                        margin-bottom: 20px;
+                    }
+                    .signature {
+                        margin-top: 40px;
+                        font-style: italic;
+                        color: #666;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 40px;
+                        font-size: 14px;
+                        color: #999;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <h3>${content}</h3>
+                    <p>Dear ${user.name},</p>
+                    <p>We are pleased to confirm your cancel booking with CV-Natchy Rental Car with the details as follows:</p>
+                    <ul>
+                        <li>Booking Id: ${booking_information._id}</li>
+                        <li>Car Name: ${car.name}</li>
+                        <li>Booking Date: ${booking_information.apptDate}</li>
+                    </ul>
+                    <p class="signature">Best Regards,<br>CV-Natchy Rental Car Booking Team</p>
+                    <div class="footer">
+                        This is an automated message, please do not reply directly to this email. For assistance, contact our support team.
+                    </div>
+                </div>
+            </body>
+        </html>
+        `;
+        await EmailService.sendEmail(user.email, content, '', emailContent);
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+const sendEmailBookingSuccess = async (booking_information, subject_content) => {
+    try {
+        const user = await User.findById(booking_information.user);
+        const car = await Car.findById(booking_information.car);
+
+        let content;
+        if (subject_content === "create") {
+            content = "Create Booking Confirmation";
+        } else {
+            content = "Update Booking Confirmation";
+        }
+
+        console.log(user);
+        console.log(car);
+        const emailContent = `
+        <html>
+            <head>
+                <style>
+                    body {
+                        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                        background-color: #f4f4f4;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        margin: 0;
+                        padding: 20px;
+                        color: #555;
+                    }
+                    .email-container {
+                        background-color: #ffffff;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
+                        border-top: 4px solid #5cb85c;
+                    }
+                    h3 {
+                        font-size: 24px;
+                        margin-bottom: 20px;
+                        color: #333;
+                        text-align: center;
+                    }
+                    p {
+                        margin-bottom: 20px;
+                    }
+                    .signature {
+                        margin-top: 40px;
+                        font-style: italic;
+                        color: #666;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 40px;
+                        font-size: 14px;
+                        color: #999;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <h3>${content}</h3>
+                    <p>Dear ${user.name},</p>
+                    <p>We are pleased t o confirm your booking with CV-Natchy Rental Car. Your reservation details are as follows:</p>
+                    <ul>
+                        <li>Booking Id: ${booking_information._id}</li>
+                        <li>Car Name: ${car.name}</li>
+                        <li>Booking Date: ${booking_information.apptDate}</li>
+                        <li>Rental Address: ${car.address} ${car.district} ${car.province}</li>
+                        <li>Contact Number: ${car.tel}</li>
+                    </ul>
+                    <p>Please ensure to bring your driver's license and the credit card used for this booking upon vehicle pick-up.</p>
+                    <p class="signature">Best Regards,<br>CV-Natchy Rental Car Booking Team</p>
+                    <div class="footer">
+                        This is an automated message, please do not reply directly to this email. For assistance, contact our support team.
+                    </div>
+                </div>
+            </body>
+        </html>
+        `;
+        await EmailService.sendEmail(user.email, content, '', emailContent);
+    } catch (err) {
+        console.error(err);
     }
 }

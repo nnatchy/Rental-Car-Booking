@@ -191,35 +191,75 @@ const forgotPassword = async (req, res, next) => {
             <head>
                 <style>
                     body {
-                        font-family: Arial, sans-serif;
+                        font-family: 'Google Sans', Roboto, Helvetica, Arial, sans-serif;
+                        background-color: #ffffff;
+                        color: #202124;
                         font-size: 16px;
-                        line-height: 1.6;
+                        line-height: 1.5;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .email-container {
+                        width: 100%;
+                        max-width: 680px;
+                        background: #ffffff;
                         margin: 40px auto;
-                        max-width: 600px;
-                        color: #333333;
+                        border: 1px solid #e0e0e0;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
+                        overflow: hidden;
                     }
                     h3 {
-                        font-size: 24px;
-                        margin-bottom: 20px;
-                        color: #333333;
+                        font-size: 20px;
+                        background-color: #f8f9fa;
+                        color: #202124;
+                        padding: 16px 24px;
+                        border-bottom: 1px solid #e0e0e0;
+                        margin: 0;
                     }
                     p {
-                        margin-bottom: 20px;
-                        color: #666666;
+                        font-size: 16px;
+                        color: #5f6368;
+                        padding: 20px 24px;
+                        margin: 0;
+                    }
+                    a {
+                        text-decoration: none;
+                        color: #5cb85c;
+                    }
+                    .button {
+                        display: block;
+                        width: max-content;
+                        color: #ffffff;
+                        text-align: center;
+                        border-radius: 4px;
+                        padding: 10px 20px;
+                        text-decoration: none;
+                        margin: 20px 24px;
+                        border: 1px solid #000000;
                     }
                     .signature {
-                        margin-top: 20px;
-                        font-style: italic;
+                        text-align: center;
+                        padding: 16px 24px;
+                        background-color: #f8f9fa;
+                        color: #5f6368;
+                        font-size: 14px;
+                        border-top: 1px solid #e0e0e0;
                     }
                 </style>
             </head>
             <body>
-                <h3>Dear ${user.name},</h3>
-                <p>We received a request to reset your password. If this wasn't you, you can ignore this email.</p>
-                <p>To reset your password, click the link below:</p>
-                <p><a href="${resetUrl}">Reset password link</a></p>
-                <p>The link will expire in 1 hour.</p>
-                <p class="signature">Best regards,<br>CV-Natchy Rental Car Booking team</p>
+                <div class="email-container">
+                    <h3>Password Reset Request</h3>
+                    <p>Hello ${user.name},</p>
+                    <p>We received a request to reset your password for your account. If you did not make this request, please ignore this email. Otherwise, you can reset your password using the button below.</p>
+                    <a href="${resetUrl}" class="button">Reset Password</a>
+                    <p>The link will expire in 1 hour.</p>
+                    <div class="signature">
+                        Thank you,<br>
+                        The Support Team
+                    </div>
+                </div>
             </body>
             </html>
         `;
@@ -230,18 +270,20 @@ const forgotPassword = async (req, res, next) => {
         // Respond to the client
         res.status(200).json({
             success: true,
-            msg: "Password reset instructions sent to your email",
+            msg: "Password reset instructions sent to your email.",
         });
 
     } catch (err) {
-        console.error(err)
+        console.error(err);
         res.status(500).json({
             success: false,
-            msg: "Forgot password method error",
+            msg: "Error processing your request",
             error: err,
         });
     }
 };
+
+
 
 // @desc Reset password - Update user's password using reset token
 // @route PUT /api/v1/auth/resetpassword/:id/:token

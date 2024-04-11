@@ -34,8 +34,8 @@ const createVerification = (user) => {
                 otp: otp,
             });
             // Send email with OTP
-            await SendEmailVerification(user.email, otp)
-            console.log("Success:", verify)
+            await SendEmailVerification(user.email, otp);
+            console.log("Success:", verify);
             resolve(verify);
         } catch (err) {
             console.error(err);
@@ -89,40 +89,60 @@ const SendEmailVerification = async (email, otp) => {
     try {
         const emailContent = `
         <html>
-        <head>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    font-size: 16px;
-                    line-height: 1.6;
-                    margin: 40px auto;
-                    max-width: 600px;
-                    color: #333333;
-                }
-                h3 {
-                    font-size: 24px;
-                    margin-bottom: 20px;
-                    color: #333333;
-                }
-                p {
-                    margin-bottom: 20px;
-                    color: #666666;
-                }
-                .signature {
-                    margin-top: 20px;
-                    font-style: italic;
-                }
-                .otp {
-                    font-weight: bold;
-                }
-            </style>
-        </head>
-        <body>
-            <h3>Dear user,</h3>
-            <p>Your OTP is: <span class="otp">${otp}</span></p>
-            <p>Please use this OTP to verify your email address.</p>
-            <p class="signature">Best regards,<br>CV-Natchy Rental Car Booking team</p>
-        </body>
+            <head>
+                <style>
+                    body {
+                        font-family: 'Helvetica Neue', Arial, sans-serif;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                        background-color: #f3f3f3;
+                    }
+                    .email-container {
+                        background-color: #fff;
+                        width: 100%;
+                        max-width: 600px;
+                        margin: 40px auto;
+                        padding: 20px;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                        border-top: 4px solid #5cb85c;
+                        border-radius: 8px;
+                    }
+                    h3 {
+                        font-size: 24px;
+                        color: #333;
+                        text-align: center;
+                        margin-top: 0;
+                        margin-bottom: 20px;
+                    }
+                    p {
+                        color: #555;
+                        margin-bottom: 15px;
+                        line-height: 1.4;
+                    }
+                    .otp {
+                        font-size: 20px;
+                        font-weight: bold;
+                        color: #5cb85c;
+                    }
+                    .signature {
+                        font-style: normal;
+                        margin-top: 40px;
+                        color: #666;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <h3>Email Verification Required</h3>
+                    <p>Dear User,</p>
+                    <p>Your One-Time Password (OTP) is: <span class="otp">${otp}</span></p>
+                    <p>Please use this OTP to complete your email verification.</p>
+                    <p class="signature">Best Regards,<br>CV-Natchy Rental Car Booking Team</p>
+                </div>
+            </body>
         </html>
         `;
         await EmailService.sendEmail(email, "Email Verification OTP", '', emailContent);
@@ -130,6 +150,7 @@ const SendEmailVerification = async (email, otp) => {
         console.error(err);
     }
 }
+
 
 const deleteVerification = async (userId) => {
     try {
