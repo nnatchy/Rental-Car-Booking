@@ -1,0 +1,93 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+package "CV มาเรียนหน่อย, Car Rental System UML Profile" {
+    class "<<Application>>\nCarRentalService" as CarRentalService{
+    }
+
+    ' Authentication block
+    class "<<Resource>>\nAuth" as ResourceAuth {
+    }
+    class "<<Resource>>\nRegister" as ResourceRegister {
+        <<POST>> +register(): void
+    }
+    class "<<Resource>>\nLogin" as ResourceLogin {
+        <<POST>> +login(): void
+    }
+    class "<<Resource>>\nLogout" as ResourceLogout {
+        <<POST>> +logout(): void
+    }
+    class "<<Resource>>\nMe" as ResourceMe {
+        <<GET>> +getMe():User
+    }
+
+    ' Bookings block
+    class "<<Resource>>\nBookings" as ResourceBookings {
+        <<GET>>  +getBookings(): Array<Booking>
+        <<POST>> +addBooking(): Booking
+    }
+    class "<<Resource>>\nBooking" as ResourceBooking {
+        <<GET>> +getBooking(): Booking
+        <<PUT>> +updateBooking(): Booking
+        <<DELETE>> +deleteBooking(): void
+    }
+
+    ' Cars block
+    class "<<Resource>>\nCars" as ResourceCars {
+        <<GET>> +getCars(): Array<Car>
+        <<POST>> +createCar(): Car
+    }
+    class "<<Resource>>\nCar" as ResourceCar {
+        <<GET>> +getCar(): Car
+        <<PUT>> +updateCar(): Car
+        <<DELETE>> +deleteCar(): void
+    }
+
+    ' Representations block
+    class "<<Representation>>\nUser" as RepresentationUser {
+        -name string
+        -email string
+        -tel string
+        -password string
+        -role string
+        -resetPasswordToken string
+        -resetPasswordExpire Date
+        -createdAt Date
+        -verified Boolean
+    }
+    class "<<Representation>>\nBooking" as RepresentationBooking {
+        -apptDate Date
+        -user ObjectId
+        -car ObjectId
+        -createdAt Date
+    }
+    class "<<Representation>>\nCar" as RepresentationCar {
+        -name string
+        -address string
+        -district string
+        -province string
+        -tel string
+        -region string
+    }
+}
+
+' Paths updated to remove /api/v1 and reflect the relationship between cars and bookings
+CarRentalService ..> ResourceAuth : "/auth\n<<Path>>"
+ResourceAuth ..> ResourceRegister : "/auth/register\n<<Path>>"
+ResourceAuth ..> ResourceLogin : "/auth/login\n<<Path>>"
+ResourceAuth ..> ResourceLogout : "/auth/logout\n<<Path>>"
+ResourceAuth ..> ResourceMe : "/auth/me\n<<Path>>"
+ResourceMe ..> RepresentationUser : "<<use>>"
+
+CarRentalService ..> ResourceBookings : "/bookings\n<<Path>>"
+ResourceBookings ..> ResourceBooking : "/bookings/{id}\n<<Path>>"
+ResourceBooking ..> RepresentationBooking : "<<use>>"
+
+CarRentalService ..> ResourceCars : "/cars\n<<Path>>"
+ResourceCars ..> ResourceCar : "/cars/{carId}\n<<Path>>"
+ResourceCar ..> RepresentationCar : "<<use>>"
+
+ResourceCar ..> ResourceBookings : "/bookings\n<<Path>>"
+
+@enduml

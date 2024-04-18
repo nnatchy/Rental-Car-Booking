@@ -5,7 +5,7 @@ const User = require("../models/User");
 const { getMe } = require('./auth');
 
 //@desc Get all bookings
-//@route GET /api/v1/booking
+//@route GET /api/v1/bookings
 //@access Private
 exports.getBookings = async (req, res, next) => {
     let query;
@@ -52,7 +52,7 @@ exports.getBookings = async (req, res, next) => {
 }
 
 //@desc Get sindle booking
-//@route GET /api/v1/booking/:id
+//@route GET /api/v1/bookings/:id
 //@access Public
 exports.getBooking = async (req, res, next) => {
     try {
@@ -83,7 +83,7 @@ exports.getBooking = async (req, res, next) => {
 }
 
 //desc @Add single booking
-//@route POST /api/v1/car/:carId/bookings/
+//@route POST /api/v1/cars/:carId/bookings/
 //@access Private
 exports.addBooking = async (req, res, next) => {
     try {
