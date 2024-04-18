@@ -1,0 +1,21 @@
+@startuml Rental Car Logout
+
+header Rental Car Logout Sequence Diagram
+title "Rental Car Logout"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:auth" as routerUsers
+participant "<<controllers>>:auth" as controllersUsers
+
+client->server ++:req.get('/auth/logout)
+server->routerUsers ++:app.use('/auth/logout',logout)
+routerUsers -> controllersUsers ++: logout()
+
+alt already authorized
+    controllersUsers->client --:success : true
+else dont authorized
+    controllersUsers -> client --:success : false
+end
+
+@enduml

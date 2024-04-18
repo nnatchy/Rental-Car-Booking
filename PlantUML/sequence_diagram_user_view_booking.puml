@@ -1,0 +1,27 @@
+@startuml Rental Car User Booking (GET)
+
+header Rental Car User Booking View Sequence Diagram
+title "Rental Car User Booking (GET)"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:bookings" as routerBookings
+participant "<<controllers>>:bookings" as controllersBookings
+participant "<<model>>:Booking" as modelBooking
+database "<<MongoDB>>:bookings" as BookingsDatabase
+
+client->server ++:req.get('/bookings)
+server->routerBookings ++:app.use('/bookings',bookings)
+routerBookings -> controllersBookings ++:getBookings(req)
+
+alt booking ID exists and user is authorized
+    controllersBookings->modelBooking ++: find({user: req.user.id})
+    modelBooking ->BookingsDatabase ++: Get booking data
+    BookingsDatabase --> modelBooking --: got booking data
+    controllersBookings <-- modelBooking --: got booking data
+    controllersBookings->client --:success : true
+else user not authorized
+    controllersBookings -> client --:success : false
+end
+
+@enduml

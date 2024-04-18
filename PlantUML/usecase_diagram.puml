@@ -1,0 +1,35 @@
+@startuml Rental Car Booking System Use Case Diagram
+left to right direction
+
+rectangle "System" as VaQSystem {
+    usecase "Register" as register
+    usecase "Login via\ngmail and password" as login
+    usecase "Logout" as logout
+    usecase "Booking car with limited\nto a maximum of three" as user_booking
+    usecase "View his/her rental\ncar booking" as user_view
+    usecase "Edit his/her rental\ncar booking" as user_edit
+    usecase "Delete his/her rental\ncar booking" as user_delete
+    usecase "View any rental\ncar booking" as admin_view
+    usecase "Edit any rental\ncar booking" as admin_edit
+    usecase "Delete any rental\ncar booking" as admin_delete
+}
+
+actor "User" as user
+user -- register
+user -- login
+user -- user_booking
+user -- user_view
+user -- user_edit
+user -- user_delete
+
+login .> register : include
+logout .> login : include
+
+actor "Admin" as admin
+register -- admin
+login -- admin
+admin_view -- admin
+admin_edit -- admin
+admin_delete -- admin
+
+@enduml

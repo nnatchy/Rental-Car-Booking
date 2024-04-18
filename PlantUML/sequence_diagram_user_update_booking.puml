@@ -1,0 +1,27 @@
+@startuml Rental Car User Booking (PUT)
+
+header Rental Car User Booking PUT Sequence Diagram
+title "Rental Car User Booking (PUT)"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:bookings" as routerBookings
+participant "<<controllers>>:bookings" as controllersBookings
+participant "<<model>>:Booking" as modelBooking
+database "<<MongoDB>>:bookings" as BookingsDatabase
+
+client->server ++:req.put('/bookings/:id')
+server->routerBookings ++:app.use('/bookings/:id',bookings)
+routerBookings -> controllersBookings ++:updateBooking(req)
+
+alt booking ID exists and user is authorized
+    controllersBookings->modelBooking ++: findByIdAndUpdate(req.params.id)
+    modelBooking ->BookingsDatabase ++: Update booking data
+    BookingsDatabase --> modelBooking --: updated booking data
+    controllersBookings <-- modelBooking --: updated booking data
+    controllersBookings->client --:success : true
+else booking ID does not exist or user not authorized or update another user booking\n or booking same car with the same date
+    controllersBookings -> client --:success : false
+end
+
+@enduml

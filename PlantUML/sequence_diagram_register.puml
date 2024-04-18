@@ -1,0 +1,27 @@
+@startuml Rental Car Register
+
+header Rental Car Register Sequence Diagram
+title "Rental Car Register"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:auth" as routerUsers
+participant "<<controllers>>:auth" as controllersUsers
+participant "<<model>>:User" as modelUser
+database "<<MongoDB>>:users" as UsersDatabase
+
+client->server ++:req.post('/auth/register)
+server->routerUsers ++:app.use('/auth/register',register)
+routerUsers -> controllersUsers ++: register(req)
+
+alt all fields correct
+    controllersUsers-> modelUser ++: create({req.body.name,req.body.email,req.body.tel,req.body.password,req.body.role});
+    modelUser ->UsersDatabase ++: Create user
+    UsersDatabase --> modelUser --: created user
+    controllersUsers <-- modelUser --:created user
+    controllersUsers->client --:success : true
+else some required field is empty or invalid syntax
+    controllersUsers -> client --:success : false
+end
+
+@enduml

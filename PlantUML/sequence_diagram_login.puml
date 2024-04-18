@@ -1,0 +1,27 @@
+@startuml Rental Car Login
+
+header Rental Car Login Sequence Diagram
+title "Rental Car Login"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:auth" as routerUsers
+participant "<<controllers>>:auth" as controllersUsers
+participant "<<model>>:User" as modelUser
+database "<<MongoDB>>:users" as UsersDatabase
+
+client->server ++:req.post('/auth/login)
+server->routerUsers ++:app.use('/auth/login',login)
+routerUsers -> controllersUsers ++: login(req)
+
+alt all fields correct
+    controllersUsers-> modelUser ++: findOne({req.body.email}).select('+req.body.password')
+    modelUser ->UsersDatabase ++: Login user
+    UsersDatabase --> modelUser --: login user
+    controllersUsers <-- modelUser --:login user
+    controllersUsers->client --:success : true
+else invalid user or password
+    controllersUsers -> client --:success : false
+end
+
+@enduml

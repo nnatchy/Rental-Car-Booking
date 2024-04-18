@@ -1,0 +1,27 @@
+@startuml Rental Car Admin Booking (GET)
+
+header Rental Car Admin Booking View Sequence Diagram
+title "Rental Car Admin Booking (GET)"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:bookings" as routerBookings
+participant "<<controllers>>:bookings" as controllersBookings
+participant "<<model>>:Booking" as modelBooking
+database "<<MongoDB>>:bookings" as BookingsDatabase
+
+client->server ++:req.get('/bookings)
+server->routerBookings ++:app.use('/bookings',bookings)
+routerBookings -> controllersBookings ++:getBookings(req)
+
+alt booking ID exists and admin is authorized
+    controllersBookings->modelBooking ++: find()
+    modelBooking ->BookingsDatabase ++: Get booking data
+    BookingsDatabase --> modelBooking --: got booking data
+    controllersBookings <-- modelBooking --: got booking data
+    controllersBookings->client --:success : true
+else admin not authorized
+    controllersBookings -> client --:success : false
+end
+
+@enduml

@@ -1,0 +1,27 @@
+@startuml Rental Car Admin Booking (DELETE)
+
+header Rental Car Admin Booking Delete Sequence Diagram
+title "Rental Car Admin Booking (DELETE)"
+
+participant "Client" as client
+participant "<<javaScript>>:server" as server
+participant "<<router>>:bookings" as routerBookings
+participant "<<controllers>>:bookings" as controllersBookings
+participant "<<model>>:Booking" as modelBooking
+database "<<MongoDB>>:bookings" as BookingsDatabase
+
+client->server ++:req.delete('/bookings/:id')
+server->routerBookings ++:app.use('/bookings/:id',bookings)
+routerBookings -> controllersBookings ++:deletebooking(req)
+
+alt booking ID exists and admin is authorized
+    controllersBookings->modelBooking ++:findByIdAndDelete(req.params.id)
+    modelBooking ->BookingsDatabase ++: Delete booking data
+    BookingsDatabase --> modelBooking --: deleted booking data
+    controllersBookings <-- modelBooking --:deleted booking data
+    controllersBookings->client --:success : true
+else booking ID does not exist or admin not authorized
+    controllersBookings -> client --:success : false
+end
+
+@enduml
