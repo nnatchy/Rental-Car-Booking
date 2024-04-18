@@ -74,18 +74,18 @@ package "CV มาเรียนหน่อย, Car Rental System UML Profile"
 
 ' Paths updated to remove /api/v1 and reflect the relationship between cars and bookings
 CarRentalService ..> ResourceAuth : "/auth\n<<Path>>"
-ResourceAuth ..> ResourceRegister : "/auth/register\n<<Path>>"
-ResourceAuth ..> ResourceLogin : "/auth/login\n<<Path>>"
-ResourceAuth ..> ResourceLogout : "/auth/logout\n<<Path>>"
-ResourceAuth ..> ResourceMe : "/auth/me\n<<Path>>"
+ResourceAuth ..> ResourceRegister : "/register\n<<Path>>"
+ResourceAuth ..> ResourceLogin : "/login\n<<Path>>"
+ResourceAuth ..> ResourceLogout : "/logout\n<<Path>>"
+ResourceAuth ..> ResourceMe : "/me\n<<Path>>"
 ResourceMe ..> RepresentationUser : "<<use>>"
 
 CarRentalService ..> ResourceBookings : "/bookings\n<<Path>>"
-ResourceBookings ..> ResourceBooking : "/bookings/{id}\n<<Path>>"
+ResourceBookings ..> ResourceBooking : "/{bookingId}\n<<Path>>"
 ResourceBooking ..> RepresentationBooking : "<<use>>"
 
 CarRentalService ..> ResourceCars : "/cars\n<<Path>>"
-ResourceCars ..> ResourceCar : "/cars/{carId}\n<<Path>>"
+ResourceCars ..> ResourceCar : "/{carId}\n<<Path>>"
 ResourceCar ..> RepresentationCar : "<<use>>"
 
 ResourceCar ..> ResourceBookings : "/bookings\n<<Path>>"
