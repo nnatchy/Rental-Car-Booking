@@ -9,7 +9,7 @@ const VerifiedSchema = new mongoose.Schema({
     },
     otp: {
         type: String,
-        required: true
+        required: false
     },
     createdAt: {
         type: Date,
