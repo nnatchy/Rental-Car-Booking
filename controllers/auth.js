@@ -138,7 +138,7 @@ const verifyUser = async (req, res, next) => {
             "verified": true,
         }
         if (otp !== verificationData.otp) {
-            res.status(406).json({
+            return res.status(406).json({
                 success: false,
                 msg: "Incorrect OTP"
             })
